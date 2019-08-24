@@ -26,13 +26,20 @@ class About:
         logo = PhotoImage(file=os.path.join(file_path, '../res/logo.gif'))
         label_logo = Label(grid_middle, image=logo)
         label_logo.image = logo # don't garbage collect me please.
-        label_logo.grid(row=0, column=1, rowspan=2)
+        label_logo.grid(row=0, column=1, rowspan=4)
         
         label_description = Label(grid_middle,justify=LEFT, text = 'Use your deductive powers to figure out where the mines are on the grid.\nYou lose if you step on a mine.\nTo win you must open every square except for the mines.')
         label_description.grid(row=0, column=0)
+        
+        label_author = Label(grid_middle, justify=LEFT, text='by: SeggiePants')
+        label_author.grid(row=1, column=0, sticky='W')
+
+        label_copyright = Label(grid_middle, justify=LEFT, text='Copyright © 2019. All Rights Reserved.')
+        label_copyright.grid(row=2, column=0, sticky='W')
+
 
         label_version = Label(grid_middle, justify=LEFT, text = 'Version: ' + __version__)
-        label_version.grid(row=1, column=0, sticky='W')
+        label_version.grid(row=3, column=0, sticky='W')
         grid_middle.pack()
 
         button_ok = Button(self.top, text='OK', command = self.ok)

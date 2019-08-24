@@ -1,4 +1,5 @@
-from tkinter import Tk, Menu
+import os
+from tkinter import Tk, Menu, PhotoImage
 from tkinter.messagebox import showinfo
 from functools import partial
 from game.about import About
@@ -25,6 +26,12 @@ def BuildGUI():
     main_menu.add_cascade(label='Help', menu=help_menu)
 
     root.config(menu=main_menu)
+    root.title('Minesweeper')
+
+    file_path = os.path.dirname(os.path.realpath(__file__))        
+    icon = PhotoImage(file=os.path.join(file_path, '../res/logo.gif'))
+    root.icon = icon # don't garbage collect me please.
+    root.tk.call('wm', 'iconphoto', root._w, icon)
     return root
 
 def RunGame():
