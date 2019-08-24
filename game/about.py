@@ -45,6 +45,7 @@ class About:
         button_ok = Button(self.top, text='OK', command = self.ok)
         button_ok.pack(padx=pad_px, pady=pad_px * 2, anchor=SE)
 
+        self.top.tk.call('wm', 'iconphoto', self.top._w, logo)
         self.top.resizable(False, False)
     
     def ok(self):
