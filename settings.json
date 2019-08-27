@@ -1,0 +1,23 @@
+{
+    "high_score_count": 10
+    , "difficulty": [
+        {
+            "name": "Easy"
+            , "width": 10
+            , "height": 15
+            , "bombs": 15
+        }
+        , {
+            "name": "Medium"
+            , "width": 20
+            , "height": 30
+            , "bombs": 100
+        }
+        , {
+            "name": "Hard"
+            , "width": 35
+            , "height": 35
+            , "bombs": 300
+        }
+    ]
+}

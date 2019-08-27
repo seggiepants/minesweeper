@@ -1,5 +1,6 @@
 from game import gui
 
 if __name__ == '__main__':
-    gui.RunGame()
+    window = gui.GameWindow()
+    window.run_game('Hard')
 
