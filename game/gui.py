@@ -12,11 +12,13 @@ class GameWindow(object):
     def __init__(self):
         pass
 
-    def open(self, col, row):
+    def open(self, col, row, event):
         self.grid.open(col, row)
+        self.redraw_grid()
 
-    def toggle_flagged(self, col, row):
+    def toggle_flagged(self, col, row, event):
         self.grid.toggle_flagged(col, row)
+        self.redraw_cell(col, row)
     
     def init_icons(self):
         file_path = os.path.dirname(os.path.realpath(__file__))
@@ -29,31 +31,44 @@ class GameWindow(object):
         self.icons['flagged'] = PhotoImage(file=os.path.join(file_path, '../res/flagged.ppm'))
         self.icons['logo'] = PhotoImage(file=os.path.join(file_path, '../res/logo.gif'))        
 
+    def redraw_grid(self):
+        for j in range(self.grid.height):
+            for i in range(self.grid.width):
+                self.redraw_cell(i, j)
+    
+    def redraw_cell(self, col, row):
+        cell = self.grid_frame.nametowidget(f'cell_{col}_{row}')
+        if self.grid.get(col, row).state == State.FLAGGED:
+            icon = self.icons['flagged']
+        elif self.grid.get(col, row).state == State.DEFAULT:
+            icon = self.icons['default']
+        else:
+            bomb_count = self.grid.get_bomb_count(col, row)
+            icon = self.icons['blank']
+            if self.grid.get(col, row).is_bomb:
+                icon = self.icons['bomb']
+            elif bomb_count >= 1 and bomb_count <= 8:
+                icon = self.icons[bomb_count]
+        cell.config(image=icon)
+    
     def show_about(self):
         dialog = About(self.root)
         self.root.wait_window(dialog.top)
+
     
     def change_difficulty(self):        
         self.grid = Grid(self.current_difficulty['width'], self.current_difficulty['height'])
         self.grid.seed_grid(self.current_difficulty['bombs'])
 
+        icon = self.icons['default']
         for j in range(self.grid.height):
             for i in range(self.grid.width):
-                if self.grid.get(i, j).state == State.FLAGGED:
-                    icon = self.icons['flagged']
-                elif self.grid.get(i, j).state == State.DEFAULT:
-                    icon = self.icons['default']
-                else:
-                    bomb_count = self.grid.get_bomb_count(i, j)
-                    icon = self.icons['blank']
-                    if self.grid.get(i, j).is_bomb:
-                        icon = self.icons['bomb']
-                    elif bomb_count >= 1 and bomb_count <= 8:
-                        icon = self.icons[bomb_count]
-                cell = Label(self.grid_frame, width=icon.width(), height=icon.height(), borderwidth=0, image=icon)
-                #cell.bind('<Button-1>', partial(self.open, i, j))
-                #cell.bind('<Button-1>', partial(self.toggle_flagged, i, j))
+                cell = Label(self.grid_frame, width=icon.width(), height=icon.height(), borderwidth=0, image=icon, name=f'cell_{i}_{j}')
+                cell.bind('<Button-1>', partial(self.open, i, j))
+                cell.bind('<Button-3>', partial(self.toggle_flagged, i, j))
                 cell.grid(column = i, row = j, ipadx = 0, ipady = 0, padx = 0, pady=0)
+        
+        self.redraw_grid()
     
     def not_yet_implemented(self):
         showinfo('OK', 'This has not yet been implemented.')

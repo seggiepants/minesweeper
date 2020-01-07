@@ -133,6 +133,14 @@ class CellTest(unittest.TestCase):
         my_grid.toggle_flagged(0, 0)
         self.assertEqual(my_grid.get(0, 0).state, State.DEFAULT)
 
+        # Didn't mix up row and column did we?
+        my_grid._state = GameState.PLAYING
+        my_grid.toggle_flagged(1, 0)
+        self.assertEqual(my_grid.get(1, 0).state, State.FLAGGED)
+        my_grid.toggle_flagged(1, 0)
+        self.assertEqual(my_grid.get(1, 0).state, State.DEFAULT)
+
+
         # should not change if open.
         my_grid.get(0, 0).state = State.OPEN
         my_grid.toggle_flagged(0, 0)

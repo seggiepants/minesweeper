@@ -144,7 +144,7 @@ class Grid:
           raise ValueError(f'location [{col}][{row}] is out of bounds.')
       
       if self.state == GameState.PLAYING:
-        self._cells[col][row].toggle_flag()
+        self._cells[row][col].toggle_flag()
     
     def seed_grid(self, num_bombs):
       """
