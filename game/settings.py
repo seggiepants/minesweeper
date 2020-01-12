@@ -4,12 +4,14 @@ import sqlite3
 import time
 from enum import Enum
 
-class storage(Enum):
+global storage
+
+class StorageType(Enum):
     DEV = 1
     RELEASE = 2
 
-def get_db_path(type):
-    if type == storage.DEV:
+def get_db_path(storage_type):
+    if storage_type == StorageType.DEV:
         path = ':memory:'
     else:
         path = os.path.dirname(os.path.realpath(__file__))
@@ -17,9 +19,9 @@ def get_db_path(type):
     
     return path
 
-def get_db_connection(type):
+def get_db_connection(connection_string):
     
-    conn = sqlite3.connect(get_db_path(type))
+    conn = sqlite3.connect(connection_string)
     c = conn.cursor()
     sql = '''
     SELECT 
@@ -82,7 +84,10 @@ def get_db_connection(type):
 
     return conn
 
-def get_difficulty_list(conn):
+def get_difficulty_list(connection_string):
+    
+    conn = get_db_connection(connection_string)
+
     sql = '''
     SELECT
         difficulty_id
@@ -107,9 +112,14 @@ def get_difficulty_list(conn):
         data['bombs'] = row[4]
         results.append(data)
     
+    conn.close()
+
     return results
     
-def get_high_scores(conn, difficulty, max_rows):
+def get_high_scores(connection_string, difficulty, max_rows):
+
+    conn = get_db_connection(connection_string)
+
     sql = '''
     SELECT
         TOP ''' + str(max_rows) + '''
@@ -135,16 +145,34 @@ def get_high_scores(conn, difficulty, max_rows):
         data['seconds'] = row[2]
         data['date'] = time.strptime(row[3], '%Y-%m-%dT%H:%M:%S')
         results.append(data)
+
+    conn.close()
     
     return results
 
-conn = get_db_connection(storage.RELEASE)
-difficulty = get_difficulty_list(conn)
-conn.close()
-print(difficulty)
+def load_settings(storage_type):
 
-path = os.path.dirname(os.path.realpath(__file__))   
-file_path = os.path.join(path, '../settings.json')     
-f = open(file_path, 'rt')
-settings = json.loads(f.read())
-f.close()
+    global storage
+    storage = {}
+
+    connection_string = get_db_path(storage_type)
+    difficulty = get_difficulty_list(connection_string)
+
+    path = os.path.dirname(os.path.realpath(__file__))   
+    file_path = os.path.join(path, '../settings.json')     
+    f = open(file_path, 'rt')
+    storage = json.loads(f.read())
+    storage['difficulty'] = difficulty
+    f.close()
+
+def save_settings(storage_type):
+    global storage
+    save_data = {}
+    save_data["high_score_count"] = storage["high_score_count"]
+    save_data["default_difficulty"] = storage["default_difficulty"]
+
+    path = os.path.dirname(os.path.realpath(__file__))   
+    file_path = os.path.join(path, '../settings.json')     
+    f = open(file_path, 'wt')
+    f.write(json.dumps(save_data))
+    f.close()

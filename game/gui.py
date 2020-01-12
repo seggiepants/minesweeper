@@ -1,15 +1,15 @@
 import os
 from functools import reduce, partial
-from tkinter import Tk, Label, Frame, Menu, PhotoImage
+from tkinter import Tk, Label, Frame, Menu, PhotoImage, IntVar
 from tkinter.messagebox import showinfo
-from game.settings import settings
+import game.settings as settings
 from game.about import About
 from game.grid import Grid, GameState
 from game.cell import Cell, State
 
 class GameWindow(object):
 
-    def __init__(self):
+    def __init__(self):        
         pass
 
     def open(self, col, row, event):
@@ -70,6 +70,15 @@ class GameWindow(object):
         
         self.redraw_grid()
     
+    def menu_change_difficulty(self):        
+        widgets = self.grid_frame.grid_slaves()
+        for widget in widgets:
+            widget.destroy()
+
+        self.current_difficulty = settings.storage["difficulty"][self.difficulty_idx.get()]
+        settings.storage["default_difficulty"] = self.current_difficulty["name"]
+        self.change_difficulty()
+    
     def not_yet_implemented(self):
         showinfo('OK', 'This has not yet been implemented.')
 
@@ -78,14 +87,20 @@ class GameWindow(object):
 
         main_menu = Menu(self.root)
         game_menu = Menu(main_menu, tearoff=0)
-        game_menu.add_command(label='New Game', command=self.not_yet_implemented)
+        game_menu.add_command(label='New Game', command=self.menu_change_difficulty)
         game_menu.add_separator()
         game_menu.add_command(label='Exit', command=self.root.quit)
         main_menu.add_cascade(label='Game', menu=game_menu)
 
+        self.difficulty_idx = IntVar()
         difficulty_menu = Menu(main_menu, tearoff = 0)
-        for item in settings['difficulty']:
-            difficulty_menu.add_radiobutton(label=item['name'], variable=self.current_difficulty, value=item, command=self.not_yet_implemented)
+        for idx, item in enumerate(settings.storage['difficulty']):
+            #difficulty_menu.add_radiobutton(label=item['name'], variable=self.current_difficulty, value=item, command=self.not_yet_implemented)
+            difficulty_menu.add_radiobutton(label=item['name'], variable=self.difficulty_idx, value=idx, indicatoron=1, command=self.menu_change_difficulty)
+            if item == self.current_difficulty:
+                self.difficulty_idx.set(idx)
+                print(f'Set Difficulty Index = {idx}')
+        
         main_menu.add_cascade(label='Difficulty', menu=difficulty_menu)
 
         help_menu = Menu(main_menu, tearoff=0)
@@ -108,6 +123,6 @@ class GameWindow(object):
         self.root.tk.call('wm', 'iconphoto', self.root._w, self.icons['logo'])
 
     def run_game(self, default_difficulty):
-        self.current_difficulty = reduce(lambda x, y: x if x['name'] == default_difficulty else y, settings['difficulty'], settings['difficulty'][0])
+        self.current_difficulty = reduce(lambda x, y: x if x['name'] == settings.storage['default_difficulty'] else y, settings.storage['difficulty'], settings.storage['difficulty'][0])
         self.build_gui()
         self.root.mainloop()
