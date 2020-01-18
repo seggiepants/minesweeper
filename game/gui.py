@@ -12,9 +12,19 @@ class GameWindow(object):
     def __init__(self):        
         pass
 
+    def win(self):
+        showinfo('You Win!', 'Congratulations, you won')
+
+    def lose(self):
+        showinfo('You lose', 'BOOM! You stepped on a mine.\r\nYou Lost the game.')
+
     def open(self, col, row, event):
         self.grid.open(col, row)
         self.redraw_grid()
+        if self.grid.get(col, row).is_bomb:
+            self.lose()
+        elif self.grid.get_count_remaining_to_open() == 0:
+            self.win()
 
     def toggle_flagged(self, col, row, event):
         self.grid.toggle_flagged(col, row)
