@@ -10,25 +10,29 @@ from game.cell import Cell, State
 class GameWindow(object):
 
     def __init__(self):        
-        pass
+        self.game_over = False
 
     def win(self):
         showinfo('You Win!', 'Congratulations, you won')
+        self.game_over = True
 
     def lose(self):
         showinfo('You lose', 'BOOM! You stepped on a mine.\r\nYou Lost the game.')
+        self.game_over = True
 
     def open(self, col, row, event):
-        self.grid.open(col, row)
-        self.redraw_grid()
-        if self.grid.get(col, row).is_bomb:
-            self.lose()
-        elif self.grid.get_count_remaining_to_open() == 0:
-            self.win()
+        if not self.game_over:
+            self.grid.open(col, row)
+            self.redraw_grid()
+            if self.grid.get(col, row).is_bomb:
+                self.lose()
+            elif self.grid.get_count_remaining_to_open() == 0:
+                self.win()
 
     def toggle_flagged(self, col, row, event):
-        self.grid.toggle_flagged(col, row)
-        self.redraw_cell(col, row)
+        if not self.game_over:
+            self.grid.toggle_flagged(col, row)
+            self.redraw_cell(col, row)
     
     def init_icons(self):
         file_path = os.path.dirname(os.path.realpath(__file__))
@@ -64,7 +68,6 @@ class GameWindow(object):
     def show_about(self):
         dialog = About(self.root)
         self.root.wait_window(dialog.top)
-
     
     def change_difficulty(self):        
         self.grid = Grid(self.current_difficulty['width'], self.current_difficulty['height'])
@@ -79,6 +82,7 @@ class GameWindow(object):
                 cell.grid(column = i, row = j, ipadx = 0, ipady = 0, padx = 0, pady=0)
         
         self.redraw_grid()
+        self.game_over = False
     
     def menu_change_difficulty(self):        
         widgets = self.grid_frame.grid_slaves()
@@ -135,4 +139,5 @@ class GameWindow(object):
     def run_game(self, default_difficulty):
         self.current_difficulty = reduce(lambda x, y: x if x['name'] == settings.storage['default_difficulty'] else y, settings.storage['difficulty'], settings.storage['difficulty'][0])
         self.build_gui()
+        self.game_over = False
         self.root.mainloop()
