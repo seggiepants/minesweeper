@@ -1,11 +1,55 @@
 import os
 from functools import reduce, partial
-from tkinter import Tk, Label, Frame, Menu, PhotoImage, IntVar
+import json
+from tkinter import Tk, Label, Listbox, Frame, Menu, PhotoImage, IntVar, Toplevel, scrolledtext, WORD
 from tkinter.messagebox import showinfo
 import game.settings as settings
 from game.about import About
 from game.grid import Grid, GameState
 from game.cell import Cell, State
+from markdown.MarkdownParser import MarkdownParser
+from markdown.MarkdownRenderTk import MarkdownRenderTk
+
+class HelpWindow(Toplevel):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.root = master
+        self.title = 'Help'
+        self.list = Listbox(self)
+        self.list.pack(side="left", fill="y")
+        self.text = scrolledtext.ScrolledText(self, wrap = WORD)
+        self.text.pack(side="right", fill="both", expand=True)
+        self.load_list()
+        self.list.bind('<<ListboxSelect>>', self.list_click)
+        self.list.select_set(0)
+        self.list_click(None)        
+    
+    def load_list(self):
+        self.files = {}
+
+        path = os.path.dirname(os.path.realpath(__file__))   
+        file_path = os.path.join(path, '../help/index.json')     
+        f = open(file_path, 'rt')
+        self.files = json.loads(f.read())
+        for counter, entry in enumerate(self.files['files']):
+            self.list.insert(counter, entry['name'])
+        f.close()
+    
+    def list_click(self, event):
+        index = self.list.curselection()[0]
+        item = self.files['files'][index]
+        path = os.path.dirname(os.path.realpath(__file__))   
+
+        f = open(os.path.join(path, '../help/', item['fileName']), 'rt')
+        buffer = f.read()
+        f.close()
+        parser = MarkdownParser()
+        tokens = parser.parse(buffer)
+        renderer = MarkdownRenderTk(self.text)
+        renderer.render(tokens, os.path.join(path, '../res'), self.link_click)
+
+    def link_click(self, url, title):
+        print("URL: %s, TITLE: %s", (url, title))
 
 class GameWindow(object):
 
@@ -68,7 +112,10 @@ class GameWindow(object):
     def show_about(self):
         dialog = About(self.root)
         self.root.wait_window(dialog.top)
-    
+
+    def show_help(self):
+        HelpWindow(self.root)
+
     def change_difficulty(self):        
         self.grid = Grid(self.current_difficulty['width'], self.current_difficulty['height'])
         self.grid.seed_grid(self.current_difficulty['bombs'])
@@ -118,6 +165,8 @@ class GameWindow(object):
         main_menu.add_cascade(label='Difficulty', menu=difficulty_menu)
 
         help_menu = Menu(main_menu, tearoff=0)
+        help_menu.add_command(label='Index', command=self.show_help)
+        help_menu.add_separator()
         help_menu.add_command(label='About', command=self.show_about)
         main_menu.add_cascade(label='Help', menu=help_menu)
 
