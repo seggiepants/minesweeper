@@ -1,5 +1,8 @@
 {
 	"files": [
-		{"name": "Index", "fileName": "index.md"}
+		{"name": "About", "fileName": "index.md"}
+		, {"name": "How to Play", "fileName": "howtoplay.md"}
+		, {"name": "User Interface", "fileName": "menus.md"}
+		, {"name": "Technology", "fileName": "technology.md"}
 	]
 }

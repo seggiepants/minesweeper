@@ -1,4 +1,5 @@
 import os
+import webbrowser
 from functools import reduce, partial
 import json
 from tkinter import Tk, Label, Listbox, Frame, Menu, PhotoImage, IntVar, Toplevel, scrolledtext, WORD
@@ -19,10 +20,12 @@ class HelpWindow(Toplevel):
         self.list.pack(side="left", fill="y")
         self.text = scrolledtext.ScrolledText(self, wrap = WORD)
         self.text.pack(side="right", fill="both", expand=True)
+        self.images = []    
         self.load_list()
         self.list.bind('<<ListboxSelect>>', self.list_click)
         self.list.select_set(0)
-        self.list_click(None)        
+        self.list_click(None)
+            
     
     def load_list(self):
         self.files = {}
@@ -39,17 +42,29 @@ class HelpWindow(Toplevel):
         index = self.list.curselection()[0]
         item = self.files['files'][index]
         path = os.path.dirname(os.path.realpath(__file__))   
+        fileName = os.path.normpath(os.path.join(path, '../help/', item['fileName']))
+        self.render_file(fileName)
 
-        f = open(os.path.join(path, '../help/', item['fileName']), 'rt')
+    def render_file(self, fileName):
+        path = os.path.dirname(os.path.realpath(__file__))   
+        f = open(os.path.join(fileName), 'rt')
         buffer = f.read()
         f.close()
         parser = MarkdownParser()
         tokens = parser.parse(buffer)
         renderer = MarkdownRenderTk(self.text)
-        renderer.render(tokens, os.path.join(path, '../res'), self.link_click)
+        renderer.render(tokens, os.path.normpath(os.path.join(path, '../res')), self.images, self.link_click)
+
 
     def link_click(self, url, title):
-        print("URL: %s, TITLE: %s", (url, title))
+        if (url.startswith('http:') or url.startswith('https:')):
+            # Open a web browser with that link.
+            webbrowser.open(url)
+        else:
+            # Open a markdown file.
+            path = os.path.dirname(os.path.realpath(__file__))
+            fileName = os.path.normpath(os.path.join(path, '../help', url))
+            self.render_file(fileName)
 
 class GameWindow(object):
 

@@ -32,11 +32,11 @@ class MarkdownRenderTk():
                 return target
         return families[0]
 
-    def render(self, tokens, img_path, callback):
+    def render(self, tokens, img_path, images, callback):
         self.text['state'] = 'normal'
         self.text.delete('1.0', tk.END)
         tags = []
-        self.images = []
+        images.clear()
         countA = 0
         indent = {}
         for token in tokens:            
@@ -65,9 +65,9 @@ class MarkdownRenderTk():
                     u.close()
                     img = tk.PhotoImage(data=base64.encodebytes(raw_data))
                 else:
-                    img = tk.PhotoImage(file=os.path.join(img_path, url))
+                    img = tk.PhotoImage(file=os.path.normpath(os.path.join(img_path, url)))
                 
-                self.images.append(img) # save a reference
+                images.append(img) # save a reference
                 self.text.image_create(tk.INSERT, image=img)
             elif tokenType == 'hr':                
                 self.text.insert(tk.INSERT, "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬" ,('hr')) 
