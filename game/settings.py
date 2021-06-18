@@ -115,7 +115,34 @@ def get_difficulty_list(connection_string):
     conn.close()
 
     return results
-    
+def add_high_score(connection_string, difficulty, name, seconds, date):
+
+    conn = get_db_connection(connection_string)
+
+    sql = '''
+    SELECT TOP 1
+        difficulty_id
+        , name
+    FROM
+        difficulty
+    WHERE
+        name = ?
+    '''
+    c = conn.cursor()
+    c.execute(sql, (difficulty, )) # trailing comma ensure interpreted as a tuple
+    row = c.fetchone()
+    difficulty_id = row[0]
+
+    sql = '''
+    INSERT INTO high_scores(difficulty_id, name, seconds, date)
+    VALUES (?, ?, ?, ?)
+    '''
+    parameters = (difficulty_id, name, seconds, time.strptime(date, '%Y-%m-%dT%H:%M:%S'))
+    c = conn.cursor()
+    c.execute(sql, parameters)
+
+
+
 def get_high_scores(connection_string, difficulty, max_rows):
 
     conn = get_db_connection(connection_string)
@@ -136,9 +163,10 @@ def get_high_scores(connection_string, difficulty, max_rows):
         hs.seconds ASC
     '''
     c = conn.cursor()
-    c.execute(sql)
+    c.execute(sql, (difficulty, ))
+    rows = c.fetchall()
     results = []
-    for row in c:
+    for row in rows:
         data = {}
         data['difficulty'] = row[0]
         data['name'] = row[1]
@@ -163,6 +191,8 @@ def load_settings(storage_type):
     f = open(file_path, 'rt')
     storage = json.loads(f.read())
     storage['difficulty'] = difficulty
+    if not 'default_difficulty' in storage:
+        storage['default_difficulty'] = difficulty[0]
     f.close()
 
 def save_settings(storage_type):
