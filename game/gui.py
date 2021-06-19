@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta, datetime
 from functools import reduce, partial
 from tkinter import Tk, Label, Frame, Menu, PhotoImage, IntVar
 from tkinter.messagebox import showinfo
@@ -7,20 +8,42 @@ from game.about import About
 from game.grid import Grid
 from game.cell import State
 from help.help import HelpWindow
-from highscore.highscore import HighScore
+from highscore.highscore import HighScore, EnterHighScore
 
 class GameWindow(object):
 
     def __init__(self):        
         self.game_over = False
 
-    def win(self):
-        showinfo('You Win!', 'Congratulations, you won')
-        self.game_over = True
+    def win(self):        
+        if not self.check_high_score():
+            showinfo('You Win!', 'Congratulations, you won')
+        self.game_over = True        
 
     def lose(self):
         showinfo('You lose', 'BOOM! You stepped on a mine.\r\nYou Lost the game.')
         self.game_over = True
+
+    def check_high_score(self):
+        connection_string = settings.get_db_path(settings.storage_type)
+        rows = settings.get_high_scores(connection_string, self.current_difficulty['name'], settings.storage['high_score_count'])
+        skip = True
+        dt = datetime.now() - self.start_time
+        seconds = dt.seconds
+        if len(rows) > 0:
+            for row in rows:
+                if row['seconds'] > seconds:
+                    skip = False
+                    break
+        else:
+            skip = False
+
+        if not skip:
+            dialog = EnterHighScore(self.current_difficulty['name'], seconds, self.root)
+            self.root.wait_window(dialog.top)
+            return True
+        else:
+            return False
 
     def open(self, col, row, event):
         if not self.game_over:
@@ -92,6 +115,7 @@ class GameWindow(object):
         
         self.redraw_grid()
         self.game_over = False
+        self.start_time = datetime.now()
     
     def menu_change_difficulty(self):        
         widgets = self.grid_frame.grid_slaves()

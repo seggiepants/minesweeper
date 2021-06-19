@@ -5,6 +5,7 @@ import time
 from enum import Enum
 
 global storage
+global storage_type
 
 class StorageType(Enum):
     DEV = 1
@@ -120,13 +121,14 @@ def add_high_score(connection_string, difficulty, name, seconds, date):
     conn = get_db_connection(connection_string)
 
     sql = '''
-    SELECT TOP 1
+    SELECT 
         difficulty_id
         , name
     FROM
         difficulty
     WHERE
         name = ?
+    LIMIT 1
     '''
     c = conn.cursor()
     c.execute(sql, (difficulty, )) # trailing comma ensure interpreted as a tuple
@@ -137,7 +139,7 @@ def add_high_score(connection_string, difficulty, name, seconds, date):
     INSERT INTO high_scores(difficulty_id, name, seconds, date)
     VALUES (?, ?, ?, ?)
     '''
-    parameters = (difficulty_id, name, seconds, time.strptime(date, '%Y-%m-%dT%H:%M:%S'))
+    parameters = (difficulty_id, name, seconds, date.strftime('%Y-%m-%dT%H:%M:%S'))
     c = conn.cursor()
     c.execute(sql, parameters)
 
@@ -149,7 +151,6 @@ def get_high_scores(connection_string, difficulty, max_rows):
 
     sql = '''
     SELECT
-        TOP ''' + str(max_rows) + '''
         d.name as difficulty
         , hs.name
         , hs.seconds
@@ -158,10 +159,12 @@ def get_high_scores(connection_string, difficulty, max_rows):
         high_scores hs
         INNER JOIN difficulty d ON hs.difficulty_id = d.difficulty_id
     WHERE
-        d.name = ?;
+        d.name = ?
     ORDER BY
         hs.seconds ASC
-    '''
+    LIMIT ''' + str(max_rows) + ';'
+    
+    print(sql)
     c = conn.cursor()
     c.execute(sql, (difficulty, ))
     rows = c.fetchall()
@@ -178,10 +181,12 @@ def get_high_scores(connection_string, difficulty, max_rows):
     
     return results
 
-def load_settings(storage_type):
+def load_settings(type):
 
     global storage
+    global storage_type
     storage = {}
+    storage_type = type
 
     connection_string = get_db_path(storage_type)
     difficulty = get_difficulty_list(connection_string)
@@ -195,8 +200,10 @@ def load_settings(storage_type):
         storage['default_difficulty'] = difficulty[0]
     f.close()
 
-def save_settings(storage_type):
+def save_settings(type):
     global storage
+    global storage_type
+    storage_type = type
     save_data = {}
     save_data["high_score_count"] = storage["high_score_count"]
     save_data["default_difficulty"] = storage["default_difficulty"]
