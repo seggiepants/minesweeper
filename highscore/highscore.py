@@ -23,32 +23,41 @@ class HighScore:
         lbl = Label(self.top, text='Difficulty:')
         lbl.pack()
         difficulty_types = [setting['name'] for setting in settings.storage['difficulty']]
-        current_difficulty = StringVar(self.top)
-        current_difficulty.set(settings.storage['default_difficulty'])
-        difficultyLevel = OptionMenu(self.top, current_difficulty, *difficulty_types)
+        self.current_difficulty = StringVar(self.top)
+        self.current_difficulty.set(settings.storage['default_difficulty'])
+        difficultyLevel = OptionMenu(self.top, self.current_difficulty, *difficulty_types, command=self.option_select)
         difficultyLevel.pack()
-        tvw = ttk.Treeview(self.top)
-        tvw['columns']=('Name', 'Time', 'Date')
-        tvw.column('#0', width=0, stretch=NO)
-        tvw.column('Name', anchor=CENTER, width=80)
-        tvw.column('Time', anchor=CENTER, width=80)
-        tvw.column('Date', anchor=CENTER, width=80)
+        self.tvw = ttk.Treeview(self.top)
+        self.tvw['columns']=('Name', 'Time', 'Date')
+        self.tvw.column('#0', width=0, stretch=NO)
+        self.tvw.column('Name', anchor=CENTER, width=80)
+        self.tvw.column('Time', anchor=CENTER, width=80)
+        self.tvw.column('Date', anchor=CENTER, width=80)
 
-        tvw.heading('#0', text='', anchor=CENTER)
-        tvw.heading('Name', text='Name', anchor=CENTER)
-        tvw.heading('Time', text='Time', anchor=CENTER)
-        tvw.heading('Date', text='Date', anchor=CENTER)
-
-        connection_string = settings.get_db_path(settings.storage_type)
-        rows = settings.get_high_scores(connection_string, current_difficulty.get(), settings.storage['high_score_count'])
-        for (idx, row) in enumerate(rows):
-            parameters = (row['name'], str(timedelta(seconds=row['seconds'])), row['date'].strftime('%m/%d/%Y %H:%M:%S'))
-            tvw.insert(parent='', index=idx, id=idx, text='', values=parameters)
-        tvw.pack()
+        self.tvw.heading('#0', text='', anchor=CENTER)
+        self.tvw.heading('Name', text='Name', anchor=CENTER)
+        self.tvw.heading('Time', text='Time', anchor=CENTER)
+        self.tvw.heading('Date', text='Date', anchor=CENTER)
+        self.populate_list()
+        self.tvw.pack()
 
         closeButton = Button(self.top, text='OK', command=self.ok)
         closeButton.pack(padx=padding, pady=padding)
 
+    def populate_list(self):
+        # clear the tree
+        for item in self.tvw.get_children():
+            self.tvw.delete(item)
+        
+        # load the data.
+        connection_string = settings.get_db_path(settings.storage_type)
+        rows = settings.get_high_scores(connection_string, self.current_difficulty.get(), settings.storage['high_score_count'])
+        for (idx, row) in enumerate(rows):
+            parameters = (row['name'], str(timedelta(seconds=row['seconds'])), time.strftime('%m/%d/%Y %H:%M:%S', row['date']))
+            self.tvw.insert(parent='', index=idx, id=idx, text='', values=parameters)
+
+    def option_select(self, event):
+        self.populate_list()
 
     def ok(self):
         # Close the dialog

@@ -30,7 +30,7 @@ class GameWindow(object):
         skip = True
         dt = datetime.now() - self.start_time
         seconds = dt.seconds
-        if len(rows) > 0:
+        if len(rows) > settings.storage['high_score_count']:
             for row in rows:
                 if row['seconds'] > seconds:
                     skip = False

@@ -16,7 +16,7 @@ def get_db_path(storage_type):
         path = ':memory:'
     else:
         path = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(path, '../minesweeper.sqlite3')
+        path = os.path.normpath(os.path.join(path, '../minesweeper.sqlite3'))
     
     return path
 
@@ -142,7 +142,8 @@ def add_high_score(connection_string, difficulty, name, seconds, date):
     parameters = (difficulty_id, name, seconds, date.strftime('%Y-%m-%dT%H:%M:%S'))
     c = conn.cursor()
     c.execute(sql, parameters)
-
+    conn.commit()
+    conn.close()
 
 
 def get_high_scores(connection_string, difficulty, max_rows):
