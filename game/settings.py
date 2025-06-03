@@ -52,7 +52,7 @@ def get_db_connection(connection_string):
         sql = 'INSERT INTO difficulty(name, width, height, num_bombs) VALUES(?,?,?,?)'
         c.executemany(sql, [
             ('Easy', 10, 10, 15,)
-            , ('Medium', 20, 30, 100,)
+            , ('Medium', 20, 20, 50,)
             , ('Hard', 35, 35, 250,)])
         conn.commit()
     
@@ -165,7 +165,6 @@ def get_high_scores(connection_string, difficulty, max_rows):
         hs.seconds ASC
     LIMIT ''' + str(max_rows) + ';'
     
-    print(sql)
     c = conn.cursor()
     c.execute(sql, (difficulty, ))
     rows = c.fetchall()

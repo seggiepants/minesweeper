@@ -146,8 +146,7 @@ class GameWindow(object):
             #difficulty_menu.add_radiobutton(label=item['name'], variable=self.current_difficulty, value=item, command=self.not_yet_implemented)
             difficulty_menu.add_radiobutton(label=item['name'], variable=self.difficulty_idx, value=idx, indicatoron=1, command=self.menu_change_difficulty)
             if item == self.current_difficulty:
-                self.difficulty_idx.set(idx)
-                print(f'Set Difficulty Index = {idx}')
+                self.difficulty_idx.set(idx)                
         
         main_menu.add_cascade(label='Difficulty', menu=difficulty_menu)
 
